@@ -28,9 +28,11 @@
     "zod": "latest"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.29.0",
     "@cloudflare/vite-plugin": "latest",
     "@cloudflare/vitest-pool-workers": "latest",
     "@cloudflare/workers-types": "latest",
+    "@rolldown/plugin-babel": "^0.2.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "latest",
