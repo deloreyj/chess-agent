@@ -1,4 +1,6 @@
+import { Banner } from "@cloudflare/kumo/components/banner";
 import { LayerCard } from "@cloudflare/kumo/components/layer-card";
+import { Text } from "@cloudflare/kumo/components/text";
 import { useState } from "react";
 
 import { useGame, usePlayMove, useResetGame } from "./hooks/useGame";
@@ -37,8 +39,10 @@ export function App() {
             onReset={() => resetGame.mutate()}
           />
 
-          {game.isLoading ? <p>Loading game...</p> : null}
-          {game.error ? <p className="error-text">{game.error.message}</p> : null}
+          {game.isLoading ? <Text variant="secondary">Loading game...</Text> : null}
+          {game.error ? (
+            <Banner variant="error" description={game.error.message} />
+          ) : null}
 
           {game.data ? (
             <>
@@ -49,7 +53,7 @@ export function App() {
                 onMove={(move) => playMove.mutate(move)}
               />
               {playMove.error ? (
-                <p className="error-text">{playMove.error.message}</p>
+                <Banner variant="error" description={playMove.error.message} />
               ) : null}
             </>
           ) : null}

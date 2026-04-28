@@ -1,5 +1,10 @@
 <!doctype html>
-<html lang="en">
+<!--
+  Kumo's standalone CSS ships dark-mode tokens behind `data-mode="dark"`.
+  The workshop UI uses a dark background, so opt every Kumo component into
+  dark mode at the document root before React mounts.
+-->
+<html lang="en" data-mode="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

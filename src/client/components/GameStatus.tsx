@@ -1,4 +1,5 @@
 import { Badge } from "@cloudflare/kumo/components/badge";
+import { Text } from "@cloudflare/kumo/components/text";
 
 import type { GameView } from "../../shared/types";
 
@@ -11,10 +12,12 @@ export function GameStatus({ game, isBusy }: GameStatusProps) {
   return (
     <div className="status-row">
       <Badge variant={statusVariant(game.status)}>{game.status}</Badge>
-      <span>{game.turn === "w" ? "White" : "Black"} to move</span>
-      {isBusy ? <span className="thinking">Agent thinking...</span> : null}
+      <Text>{game.turn === "w" ? "White" : "Black"} to move</Text>
+      {isBusy ? <Text variant="secondary">Agent thinking...</Text> : null}
       {game.lastAgentExplanation ? (
-        <p className="agent-note">Agent: {game.lastAgentExplanation}</p>
+        <div className="agent-note">
+          <Text variant="secondary">Agent: {game.lastAgentExplanation}</Text>
+        </div>
       ) : null}
     </div>
   );

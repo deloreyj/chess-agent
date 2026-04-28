@@ -1,3 +1,5 @@
+import { Select } from "@cloudflare/kumo/components/select";
+import { Text } from "@cloudflare/kumo/components/text";
 import { useMemo, useState } from "react";
 
 import type { BoardSquare, GameView, PlayMoveInput } from "../../shared/types";
@@ -88,24 +90,22 @@ export function Board({ game, disabled, onMove }: BoardProps) {
         })}
       </div>
 
-      <label className="promotion-control">
-        Promotion
-        <select
-          value={promotion}
-          onChange={(event) => setPromotion(event.currentTarget.value as PlayMoveInput["promotion"])}
-        >
-          <option value="q">Queen</option>
-          <option value="r">Rook</option>
-          <option value="b">Bishop</option>
-          <option value="n">Knight</option>
-        </select>
-      </label>
+      <Select
+        label="Promotion"
+        value={promotion}
+        onValueChange={(value) => setPromotion(value as PlayMoveInput["promotion"])}
+      >
+        <Select.Option value="q">Queen</Select.Option>
+        <Select.Option value="r">Rook</Select.Option>
+        <Select.Option value="b">Bishop</Select.Option>
+        <Select.Option value="n">Knight</Select.Option>
+      </Select>
 
-      {selectedSquare ? (
-        <p className="hint">Selected {boardBySquare.get(selectedSquare.square)?.square}</p>
-      ) : (
-        <p className="hint">Select one of your pieces, then its target square.</p>
-      )}
+      <Text variant="secondary">
+        {selectedSquare
+          ? `Selected ${boardBySquare.get(selectedSquare.square)?.square}`
+          : "Select one of your pieces, then its target square."}
+      </Text>
     </div>
   );
 }

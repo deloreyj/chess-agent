@@ -3,6 +3,7 @@ import { useAgentChat } from "@cloudflare/ai-chat/react";
 import { Button } from "@cloudflare/kumo/components/button";
 import { Input } from "@cloudflare/kumo/components/input";
 import { LayerCard } from "@cloudflare/kumo/components/layer-card";
+import { Text } from "@cloudflare/kumo/components/text";
 import { useState } from "react";
 
 import type { ChessAgent } from "../../agents/ChessAgent";
@@ -19,20 +20,22 @@ export function AgentPanel({ gameId }: AgentPanelProps) {
 
   return (
     <LayerCard className="panel side-panel">
-      <h2>Agent Chat</h2>
-      <p className="muted">
+      <Text variant="heading2">Agent Chat</Text>
+      <Text variant="secondary">
         Optional Think chat connected to this game's agent instance.
-      </p>
+      </Text>
 
       <div className="chat-log">
-        {messages.length === 0 ? <p className="muted">No chat messages.</p> : null}
+        {messages.length === 0 ? (
+          <Text variant="secondary">No chat messages.</Text>
+        ) : null}
         {messages.map((chatMessage) => (
-          <div key={chatMessage.id} className={`chat-message ${chatMessage.role}`}>
-            <strong>{chatMessage.role}</strong>
+          <LayerCard key={chatMessage.id} className="chat-message">
+            <Text variant="heading3">{chatMessage.role}</Text>
             {chatMessage.parts.map((part, index) =>
-              part.type === "text" ? <p key={index}>{part.text}</p> : null,
+              part.type === "text" ? <Text key={index}>{part.text}</Text> : null,
             )}
-          </div>
+          </LayerCard>
         ))}
       </div>
 
