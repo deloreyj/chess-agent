@@ -1,8 +1,11 @@
 import { z } from "zod";
 
-const squareSchema = z
-  .string()
-  .regex(/^[a-h][1-8]$/, "Expected a board square like e2");
+import type { Square } from "chess.js";
+
+export const squareSchema = z.custom<Square>(
+  (value) => typeof value === "string" && /^[a-h][1-8]$/.test(value),
+  "Expected a board square like e2",
+);
 
 export const playMoveInputSchema = z.object({
   from: squareSchema,

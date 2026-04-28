@@ -61,6 +61,7 @@ export function tryApplyMove(
 
     return {
       ok: true,
+      state: nextState,
       game: createGameView(nextState),
       move: moveView,
     };

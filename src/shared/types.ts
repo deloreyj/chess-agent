@@ -69,6 +69,7 @@ export type MoveFailure = {
 
 export type MoveSuccess = {
   ok: true;
+  state: GameState;
   game: GameView;
   move: MoveView;
 };
