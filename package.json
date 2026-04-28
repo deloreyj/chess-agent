@@ -1,0 +1,42 @@
+{
+  "name": "chess-agent",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cloudflare/ai-chat": "latest",
+    "@cloudflare/kumo": "latest",
+    "@cloudflare/shell": "latest",
+    "@cloudflare/think": "latest",
+    "@phosphor-icons/react": "latest",
+    "@tanstack/react-query": "latest",
+    "agents": "latest",
+    "ai": "latest",
+    "chess.js": "latest",
+    "echarts": "latest",
+    "hono": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "workers-ai-provider": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "latest",
+    "@cloudflare/vitest-pool-workers": "latest",
+    "@cloudflare/workers-types": "latest",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest",
+    "wrangler": "latest"
+  }
+}
