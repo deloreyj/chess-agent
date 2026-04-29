@@ -51,6 +51,9 @@ export type GameState = {
   playerColor: PlayerColor;
   agentColor: PlayerColor;
   lastAgentExplanation?: string;
+  // True while the LLM is taking its turn. Broadcast through agent state
+  // so every connected client renders the same "thinking..." indicator.
+  agentThinking: boolean;
 };
 
 export type GameView = GameState & {

@@ -1,4 +1,3 @@
-import { Select } from "@cloudflare/kumo/components/select";
 import { Text } from "@cloudflare/kumo/components/text";
 import { useMemo, useState } from "react";
 
@@ -26,8 +25,9 @@ type BoardProps = {
 };
 
 export function Board({ game, disabled, onMove }: BoardProps) {
-  const [selectedSquare, setSelectedSquare] = useState<BoardSquare | null>(null);
-  const [promotion, setPromotion] = useState<PlayMoveInput["promotion"]>("q");
+  const [selectedSquare, setSelectedSquare] = useState<BoardSquare | null>(
+    null,
+  );
   const boardBySquare = useMemo(
     () => new Map(game.board.map((square) => [square.square, square])),
     [game.board],
@@ -57,7 +57,7 @@ export function Board({ game, disabled, onMove }: BoardProps) {
     };
 
     if (isPromotionAttempt(selectedSquare, square)) {
-      move.promotion = promotion;
+      move.promotion = "q";
     }
 
     setSelectedSquare(null);
@@ -68,7 +68,9 @@ export function Board({ game, disabled, onMove }: BoardProps) {
     <div className="board-wrap">
       <div className="board" role="grid" aria-label="Chess board">
         {game.board.map((square) => {
-          const icon = square.piece ? pieceIcons[`${square.color}${square.piece}`] : "";
+          const icon = square.piece
+            ? pieceIcons[`${square.color}${square.piece}`]
+            : "";
           const selected = selectedSquare?.square === square.square;
 
           return (
@@ -83,23 +85,12 @@ export function Board({ game, disabled, onMove }: BoardProps) {
               disabled={disabled}
               onClick={() => handleSquareClick(square)}
             >
-              <span className="piece">{icon}</span>
+              <span className={`piece ${square.color ?? "empty"}`}>{icon}</span>
               <span className="square-label">{square.square}</span>
             </button>
           );
         })}
       </div>
-
-      <Select
-        label="Promotion"
-        value={promotion}
-        onValueChange={(value) => setPromotion(value as PlayMoveInput["promotion"])}
-      >
-        <Select.Option value="q">Queen</Select.Option>
-        <Select.Option value="r">Rook</Select.Option>
-        <Select.Option value="b">Bishop</Select.Option>
-        <Select.Option value="n">Knight</Select.Option>
-      </Select>
 
       <Text variant="secondary">
         {selectedSquare
@@ -111,7 +102,11 @@ export function Board({ game, disabled, onMove }: BoardProps) {
 }
 
 function isPromotionAttempt(from: BoardSquare, to: BoardSquare) {
-  return from.piece === "p" && ((from.color === "w" && to.rank === 8) || (from.color === "b" && to.rank === 1));
+  return (
+    from.piece === "p" &&
+    ((from.color === "w" && to.rank === 8) ||
+      (from.color === "b" && to.rank === 1))
+  );
 }
 
 function squareLabel(square: BoardSquare) {

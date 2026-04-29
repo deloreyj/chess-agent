@@ -16,7 +16,6 @@
     "@cloudflare/shell": "latest",
     "@cloudflare/think": "latest",
     "@phosphor-icons/react": "latest",
-    "@tanstack/react-query": "latest",
     "agents": "latest",
     "ai": "latest",
     "chess.js": "latest",

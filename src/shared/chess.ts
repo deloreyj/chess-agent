@@ -1,4 +1,10 @@
-import { Chess, DEFAULT_POSITION, type Color, type Move, type Square } from "chess.js";
+import {
+  Chess,
+  DEFAULT_POSITION,
+  type Color,
+  type Move,
+  type Square,
+} from "chess.js";
 
 import type {
   BoardSquare,
@@ -25,6 +31,7 @@ export function createInitialGameState(gameId: string): GameState {
     moves: [],
     playerColor: DEFAULT_PLAYER_COLOR,
     agentColor: DEFAULT_AGENT_COLOR,
+    agentThinking: false,
   };
 }
 

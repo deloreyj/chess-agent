@@ -5,15 +5,19 @@ import type { GameView } from "../../shared/types";
 
 type GameStatusProps = {
   game: GameView;
-  isBusy: boolean;
+  /**
+   * True when the LLM is in the middle of its turn (broadcast via agent
+   * state, not derived from a local pending mutation).
+   */
+  isThinking: boolean;
 };
 
-export function GameStatus({ game, isBusy }: GameStatusProps) {
+export function GameStatus({ game, isThinking }: GameStatusProps) {
   return (
     <div className="status-row">
       <Badge variant={statusVariant(game.status)}>{game.status}</Badge>
       <Text>{game.turn === "w" ? "White" : "Black"} to move</Text>
-      {isBusy ? <Text variant="secondary">Agent thinking...</Text> : null}
+      {isThinking ? <Text variant="secondary">Agent thinking...</Text> : null}
       {game.lastAgentExplanation ? (
         <div className="agent-note">
           <Text variant="secondary">Agent: {game.lastAgentExplanation}</Text>

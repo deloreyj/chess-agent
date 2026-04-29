@@ -1,121 +1,166 @@
 :root {
   color-scheme: light dark;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background: var(--color-kumo-base);
+  color: var(--text-color-kumo-default);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  background: var(--color-kumo-base);
 }
 
-/*
-  Workshop hero / layout scaffolding. Everything inside the LayerCards is
-  Kumo, but the page-level chrome (gradient background, headline) is custom.
-*/
+button,
+textarea,
+input {
+  font: inherit;
+}
+
 .app-shell {
-  min-height: 100vh;
-  box-sizing: border-box;
-  padding: 32px;
-  background:
-    radial-gradient(circle at top left, rgba(249, 115, 22, 0.22), transparent 34rem),
-    linear-gradient(135deg, #0f172a, #111827 45%, #1f2937);
-  color: #f9fafb;
+  height: 100vh;
+  overflow: hidden;
+  padding: 16px;
+  background: var(--color-kumo-canvas);
+  color: var(--text-color-kumo-default);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.hero {
-  max-width: 920px;
-  margin: 0 auto 28px;
+.app-header,
+.game-layout {
+  width: min(100%, 1280px);
+  margin: 0 auto;
 }
 
-.hero h1 {
+.app-header {
+  min-height: 86px;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: var(--color-kumo-base);
+  box-shadow: 0 18px 60px var(--color-kumo-shadow-drop);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.app-header h1 {
   margin: 0;
-  font-size: clamp(2.5rem, 9vw, 6rem);
-  letter-spacing: -0.08em;
-  line-height: 0.9;
+  color: var(--text-color-kumo-default);
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
 }
 
-.hero p {
-  max-width: 720px;
-  color: #d1d5db;
-  font-size: 1.05rem;
+.app-header p {
+  max-width: 680px;
+  margin: 6px 0 0;
+  color: var(--text-color-kumo-subtle);
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .eyebrow {
-  margin: 0 0 12px;
-  color: #fbbf24;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  margin: 0 0 7px;
+  color: var(--text-color-kumo-brand);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .game-layout {
-  max-width: 1180px;
-  margin: 0 auto;
+  flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 660px) minmax(280px, 1fr);
+  grid-template-columns: minmax(560px, 1.18fr) minmax(360px, 0.82fr);
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
-.side-panels {
-  display: grid;
-  gap: 20px;
-}
-
-/*
-  LayerCard handles surface styling (background, border, shadow) via Kumo's
-  design tokens. We only add layout-level rules here.
-*/
 .panel {
-  padding: 20px;
-  display: grid;
-  gap: 12px;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 24px;
+  background: var(--color-kumo-base);
+  box-shadow: 0 18px 60px var(--color-kumo-shadow-drop);
 }
 
 .board-panel {
+  min-height: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
   gap: 18px;
 }
 
 .game-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  justify-content: flex-end;
   align-items: end;
+  gap: 10px;
+  min-width: 360px;
+}
+
+.game-controls > *:first-child {
+  min-width: 210px;
 }
 
 .status-row {
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 18px;
+  padding: 10px 12px;
+  background: var(--color-kumo-elevated);
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .agent-note {
   flex-basis: 100%;
 }
 
-/*
-  Chess board is workshop-specific UI with no Kumo equivalent. We render an
-  8x8 grid of native <button> squares and style the wood/cream chessboard
-  look directly.
-*/
 .board-wrap {
-  display: grid;
-  gap: 12px;
-  justify-items: start;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: flex-start;
+  align-items: center;
+  overflow: hidden;
 }
 
 .board {
-  width: min(92vw, 560px);
+  width: min(100%, 56vh, 640px);
+  flex: 0 0 auto;
   aspect-ratio: 1;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
   overflow: hidden;
-  border: 10px solid #2f2418;
-  border-radius: 18px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 22px;
+  background: var(--color-kumo-fill);
+  box-shadow:
+    0 1px 0 color-mix(in oklch, var(--color-kumo-base), transparent 20%) inset,
+    0 20px 60px var(--color-kumo-shadow-drop);
 }
 
 .board-square {
@@ -124,8 +169,17 @@ body {
   place-items: center;
   border: 0;
   padding: 0;
-  color: inherit;
+  color: var(--text-color-kumo-default);
   cursor: pointer;
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.board-square:enabled:hover {
+  z-index: 1;
+  box-shadow: inset 0 0 0 2px var(--color-kumo-brand);
 }
 
 .board-square:disabled {
@@ -133,32 +187,59 @@ body {
 }
 
 .board-square.light {
-  background: #f0d9b5;
+  background: color-mix(
+    in oklch,
+    var(--color-kumo-base),
+    var(--color-kumo-brand) 5%
+  );
 }
 
 .board-square.dark {
-  background: #b58863;
+  background: color-mix(
+    in oklch,
+    var(--color-kumo-fill),
+    var(--color-kumo-brand) 13%
+  );
 }
 
 .board-square.selected {
-  outline: 4px solid #22c55e;
-  outline-offset: -4px;
+  z-index: 2;
+  box-shadow:
+    inset 0 0 0 3px var(--color-kumo-brand),
+    inset 0 0 0 999px
+      color-mix(in oklch, var(--color-kumo-brand), transparent 84%);
 }
 
 .piece {
-  color: #111827;
-  font-size: clamp(2rem, 8vw, 4.25rem);
+  font-size: clamp(1.55rem, 4.2vh, 2.4rem);
   line-height: 1;
-  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.25);
+  text-shadow: 0 1px 0
+    color-mix(in oklch, var(--color-kumo-base), transparent 30%);
+}
+
+.piece.w {
+  color: var(--text-color-kumo-default);
+  filter: drop-shadow(
+    0 1px 0 color-mix(in oklch, var(--color-kumo-base), transparent 10%)
+  );
+}
+
+.piece.b {
+  color: var(--text-color-kumo-strong);
+  filter: drop-shadow(
+    0 1px 0 color-mix(in oklch, var(--color-kumo-contrast), transparent 40%)
+  );
 }
 
 .square-label {
   position: absolute;
   left: 5px;
   bottom: 4px;
-  color: rgba(17, 24, 39, 0.58);
-  font-size: 0.68rem;
+  color: color-mix(in oklch, var(--text-color-kumo-subtle), transparent 15%);
+  font-size: 0.52rem;
   font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .move-list {
@@ -176,37 +257,291 @@ body {
   align-items: center;
 }
 
-.chat-log {
-  max-height: 300px;
-  overflow: auto;
-  display: grid;
-  gap: 10px;
-}
-
-.chat-message {
-  padding: 12px;
-  display: grid;
-  gap: 4px;
-}
-
-.chat-form {
+.agent-chat-shell {
+  min-height: 0;
   display: flex;
-  gap: 10px;
-  align-items: end;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
 }
 
-@media (max-width: 920px) {
+.agent-chat-header {
+  min-height: 76px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--color-kumo-line);
+  background: var(--color-kumo-overlay);
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.agent-chat-status {
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: var(--text-color-kumo-subtle);
+  background: var(--color-kumo-base);
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agent-chat-status[data-active="true"] {
+  border-color: color-mix(in oklch, var(--color-kumo-brand), transparent 50%);
+  color: var(--text-color-kumo-brand);
+  background: color-mix(in oklch, var(--color-kumo-brand), transparent 92%);
+}
+
+.agent-chat-feed {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overscroll-behavior: contain;
+  background:
+    linear-gradient(var(--color-kumo-base), var(--color-kumo-base)) padding-box,
+    radial-gradient(
+      circle at top right,
+      color-mix(in oklch, var(--color-kumo-brand), transparent 92%),
+      transparent 22rem
+    );
+}
+
+.agent-chat-empty {
+  margin: auto;
+  max-width: 300px;
+  border: 1px dashed var(--color-kumo-line);
+  border-radius: 20px;
+  padding: 22px;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+  color: var(--text-color-kumo-subtle);
+  background: color-mix(in oklch, var(--color-kumo-elevated), transparent 20%);
+}
+
+.agent-message {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agent-message[data-role="user"] {
+  align-items: flex-end;
+}
+
+.agent-message[data-role="assistant"],
+.agent-message[data-role="system"] {
+  align-items: flex-start;
+}
+
+.agent-message-bubble {
+  max-width: min(100%, 38rem);
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: var(--color-kumo-base);
+  color: var(--text-color-kumo-default);
+  box-shadow: 0 8px 24px var(--color-kumo-shadow-drop);
+}
+
+.agent-message[data-role="user"] .agent-message-bubble {
+  border-color: transparent;
+  background: var(--color-kumo-fill);
+  box-shadow: none;
+}
+
+.agent-message-parts,
+.agent-text-block {
+  display: grid;
+  gap: 8px;
+}
+
+.agent-text-block p {
+  margin: 0;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+}
+
+.agent-thinking-block {
+  display: grid;
+  gap: 6px;
+}
+
+.agent-thinking-trigger {
+  max-width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text-color-kumo-subtle);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: left;
+}
+
+.agent-thinking-trigger:hover {
+  color: var(--text-color-kumo-default);
+}
+
+.agent-thinking-trigger svg {
+  flex: 0 0 auto;
+  transition: transform 160ms ease;
+}
+
+.agent-thinking-trigger[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.agent-thinking-summary {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.78;
+}
+
+.agent-thinking-body {
+  max-width: 100%;
+  max-height: 260px;
+  overflow: auto;
+  margin: 0;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 12px;
+  padding: 10px;
+  background: var(--color-kumo-elevated);
+  color: var(--text-color-kumo-subtle);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.agent-streaming-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-color-kumo-brand);
+  font-size: 0.86rem;
+  font-style: italic;
+}
+
+.agent-streaming-indicator svg {
+  animation: agent-chat-pulse 1.3s ease-in-out infinite;
+}
+
+@keyframes agent-chat-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.agent-chat-composer {
+  margin: 0;
+  border-top: 1px solid var(--color-kumo-line);
+  background: var(--color-kumo-overlay);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.agent-chat-composer textarea {
+  width: 100%;
+  min-height: 84px;
+  resize: none;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: var(--color-kumo-control);
+  color: var(--text-color-kumo-default);
+  outline: none;
+  box-shadow: none;
+}
+
+.agent-chat-composer textarea:focus {
+  border-color: color-mix(in oklch, var(--color-kumo-brand), transparent 38%);
+  box-shadow: 0 0 0 3px
+    color-mix(in oklch, var(--color-kumo-brand), transparent 84%);
+}
+
+.agent-chat-composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+@media (max-width: 1080px) {
   .app-shell {
-    padding: 20px;
+    padding: 18px;
+  }
+
+  .app-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .game-controls {
+    justify-content: flex-start;
+    min-width: 0;
   }
 
   .game-layout {
     grid-template-columns: 1fr;
   }
 
-  .chat-form,
-  .game-controls {
+  .board-panel,
+  .agent-chat-shell {
+    min-height: auto;
+  }
+
+  .agent-chat-shell {
+    height: min(720px, calc(100vh - 48px));
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 12px;
+  }
+
+  .app-header,
+  .panel {
+    border-radius: 18px;
+  }
+
+  .game-controls,
+  .agent-chat-composer-footer {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .game-controls > *:first-child {
+    min-width: 0;
+  }
+
+  .board {
+    border-radius: 16px;
+  }
+
+  .piece {
+    font-size: clamp(1.8rem, 10vw, 3.2rem);
   }
 }
