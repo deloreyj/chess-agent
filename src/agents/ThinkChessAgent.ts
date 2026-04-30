@@ -8,15 +8,12 @@ import {
 } from "@cloudflare/think";
 import { callable } from "agents";
 import { tool, type ToolSet } from "ai";
-import { Chess } from "chess.js";
 import { z } from "zod";
-import { createWorkersAI } from "workers-ai-provider";
 
 import {
   createAgentTurnPrompt,
   createGameView,
   createInitialGameState,
-  getLegalMoves,
   isAgentTurn,
   isPlayerTurn,
   tryApplyMove,
@@ -24,7 +21,21 @@ import {
 import { INTERNAL_TURN_MESSAGE_ID_PREFIX } from "../shared/messages";
 import { playMoveInputSchema } from "../shared/schemas";
 import type { GameState, GameView, PlayMoveInput } from "../shared/types";
-import type { Env } from "../server/env";
+import {
+  createChessModel,
+  ensureGameState as ensureSharedGameState,
+  getLegalMovesForState,
+  shouldAgentReply,
+} from "./chessAgentCore";
+
+/******** WHAT THINK ADDS ********/
+
+// Think includes the same stateful Agent foundation as the vanilla version:
+// Durable Object state, WebSocket connections, @callable() RPC, and setState()
+// broadcasts. It also adds the agent harness: chat protocol, message
+// persistence, streaming, tool execution, auto-continuation, stream recovery,
+// and lifecycle hooks. That is the responsibility boundary this file is meant
+// to make visible during the demo.
 
 const MAX_AGENT_TURN_STEPS = 4;
 const MAX_RUNTIME_EVENTS = 30;
@@ -43,18 +54,112 @@ const MAX_RUNTIME_EVENTS = 30;
  * Workshop-relevant safety boundary: the LLM proposes moves through the
  * playMove tool, but chess.js validates them before any state is persisted.
  */
-const MODEL_ID = "@cf/moonshotai/kimi-k2.5";
-
 export class ThinkChessAgent extends Think<Env, GameState> {
   initialState = createInitialGameState("default");
   maxSteps = MAX_AGENT_TURN_STEPS;
 
-  getModel() {
-    // Workers AI binding -> Vercel AI SDK adapter.
-    const workersAi = createWorkersAI({ binding: this.env.AI });
+  /******** GAMEPLAY RPC ********/
 
+  /**
+   * RPC: get the full game view. Clients receive GameView via state broadcasts,
+   * but they need legalMoves/board/etc. that are derived from fen. We compute
+   * them here and the client also computes them locally to avoid a roundtrip.
+   * This stays @callable() in case external callers want a one-shot read.
+   */
+  @callable()
+  getGame(): GameView {
+    return createGameView(this.ensureGameState());
+  }
+
+  /**
+   * RPC: reset the game. Broadcasts new state to every connected client and
+   * clears the chat transcript on the agent.
+   */
+  @callable()
+  resetGame(): GameView {
+    const state = createInitialGameState(this.name);
+    this.setState(state);
+    this.clearMessages();
+    return createGameView(state);
+  }
+
+  /**
+   * RPC: apply the player's move and, if it's now the agent's turn, run the
+   * agent loop. The state broadcast lights up the UI; the client awaits the
+   * promise just to surface errors via stub rejection.
+   */
+  @callable()
+  async playUserMove(input: PlayMoveInput): Promise<GameView> {
+    const state = this.ensureGameState();
+
+    if (!isPlayerTurn(state)) {
+      throw new Error("It is not the player's turn.");
+    }
+
+    const playerMove = tryApplyMove(state, input);
+
+    if (!playerMove.ok) {
+      throw new Error(playerMove.error);
+    }
+
+    // Force agentThinking off when broadcasting the player's move. tryApplyMove
+    // spreads the previous state forward, so a prior turn that crashed before
+    // its `finally` ran could leave the flag stuck `true`. Clearing it here
+    // means takeAgentTurn() is the single place that ever sets it `true`.
+    this.setState({ ...playerMove.state, agentThinking: false });
+
+    if (
+      isAgentTurn(playerMove.state) &&
+      shouldAgentReply(playerMove.game)
+    ) {
+      await this.takeAgentTurn();
+    }
+
+    return createGameView(this.ensureGameState());
+  }
+
+  /******** SHARED GAME STATE HELPERS ********/
+
+  private ensureGameState(): GameState {
+    return ensureSharedGameState(this);
+  }
+
+  /******** AGENT TURN LOOP ********/
+
+  private async takeAgentTurn() {
+    const before = this.ensureGameState();
+    const prompt = createAgentTurnPrompt(createGameView(before));
+
+    // Broadcast "thinking" so connected clients can render an indicator
+    // immediately, before the LLM produces its first event.
+    this.setState({ ...before, agentThinking: true });
+
+    try {
+      // saveMessages streams the server-initiated turn to every connected client.
+      await this.saveMessages([
+        {
+          id: `${INTERNAL_TURN_MESSAGE_ID_PREFIX}${crypto.randomUUID()}`,
+          role: "user",
+          parts: [{ type: "text", text: prompt }],
+        },
+      ]);
+
+      const after = this.ensureGameState();
+
+      if (after.fen === before.fen) {
+        throw new Error("The agent did not produce a legal move.");
+      }
+    } finally {
+      const current = this.ensureGameState();
+      this.setState({ ...current, agentThinking: false });
+    }
+  }
+
+  /******** THINK HARNESS CONFIG ********/
+
+  getModel() {
     // Keep reasoning shallow so workshop turns stay fast while preserving tool use.
-    return workersAi(MODEL_ID, { reasoning_effort: "low" });
+    return createChessModel(this.env, this.sessionAffinity);
   }
 
   getSystemPrompt() {
@@ -116,6 +221,8 @@ Rules:
     };
   }
 
+  /******** THINK LIFECYCLE METHODS ********/
+
   beforeTurn(ctx: TurnContext) {
     this.recordRuntimeEvent(
       "beforeTurn",
@@ -149,109 +256,7 @@ Rules:
     return super.onChatError(error);
   }
 
-  /**
-   * RPC: get the full game view. Clients receive GameView via state broadcasts,
-   * but they need legalMoves/board/etc. that are derived from fen. We compute
-   * them here and the client also computes them locally to avoid a roundtrip.
-   * This stays @callable() in case external callers want a one-shot read.
-   */
-  @callable()
-  getGame(): GameView {
-    return createGameView(this.ensureGameState());
-  }
-
-  /**
-   * RPC: reset the game. Broadcasts new state to every connected client and
-   * clears the chat transcript on the agent.
-   */
-  @callable()
-  resetGame(): GameView {
-    const state = createInitialGameState(this.name);
-    this.setState(state);
-    this.clearMessages();
-    return createGameView(state);
-  }
-
-  /**
-   * RPC: apply the player's move and, if it's now the agent's turn, run the
-   * agent loop. The state broadcast lights up the UI; the client awaits the
-   * promise just to surface errors via stub rejection.
-   */
-  @callable()
-  async playUserMove(input: PlayMoveInput): Promise<GameView> {
-    const state = this.ensureGameState();
-
-    if (!isPlayerTurn(state)) {
-      throw new Error("It is not the player's turn.");
-    }
-
-    const playerMove = tryApplyMove(state, input);
-
-    if (!playerMove.ok) {
-      throw new Error(playerMove.error);
-    }
-
-    // Force agentThinking off when broadcasting the player's move. tryApplyMove
-    // spreads the previous state forward, so a prior turn that crashed before
-    // its `finally` ran could leave the flag stuck `true`. Clearing it here
-    // means takeAgentTurn() is the single place that ever sets it `true`.
-    this.setState({ ...playerMove.state, agentThinking: false });
-
-    if (
-      isAgentTurn(playerMove.state) &&
-      (playerMove.game.status === "active" ||
-        playerMove.game.status === "check")
-    ) {
-      await this.takeAgentTurn();
-    }
-
-    return createGameView(this.ensureGameState());
-  }
-
-  private ensureGameState(): GameState {
-    if (this.state.gameId === this.name) {
-      if (this.state.runtimeEvents) {
-        return this.state;
-      }
-
-      const state = { ...this.state, runtimeEvents: [] };
-      this.setState(state);
-      return state;
-    }
-
-    const state = createInitialGameState(this.name);
-    this.setState(state);
-    return state;
-  }
-
-  private async takeAgentTurn() {
-    const before = this.ensureGameState();
-    const prompt = createAgentTurnPrompt(createGameView(before));
-
-    // Broadcast "thinking" so connected clients can render an indicator
-    // immediately, before the LLM produces its first event.
-    this.setState({ ...before, agentThinking: true });
-
-    try {
-      // saveMessages streams the server-initiated turn to every connected client.
-      await this.saveMessages([
-        {
-          id: `${INTERNAL_TURN_MESSAGE_ID_PREFIX}${crypto.randomUUID()}`,
-          role: "user",
-          parts: [{ type: "text", text: prompt }],
-        },
-      ]);
-
-      const after = this.ensureGameState();
-
-      if (after.fen === before.fen) {
-        throw new Error("The agent did not produce a legal move.");
-      }
-    } finally {
-      const current = this.ensureGameState();
-      this.setState({ ...current, agentThinking: false });
-    }
-  }
+  /******** RUNTIME TIMELINE HELPERS ********/
 
   private recordRuntimeEvent(label: string, detail?: string) {
     const state = this.ensureGameState();
@@ -267,10 +272,6 @@ Rules:
 
     this.setState({ ...state, runtimeEvents });
   }
-}
-
-function getLegalMovesForState(state: GameState) {
-  return getLegalMoves(new Chess(state.fen));
 }
 
 function formatUnknownError(error: unknown) {

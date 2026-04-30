@@ -651,6 +651,84 @@ input {
   gap: 12px;
 }
 
+.vanilla-panel {
+  min-height: 0;
+  overflow: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.vanilla-panel-header,
+.vanilla-explanation,
+.vanilla-history {
+  display: grid;
+  gap: 8px;
+}
+
+.vanilla-loop-list {
+  display: grid;
+  gap: 10px;
+}
+
+.vanilla-loop-step {
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 16px;
+  padding: 12px;
+  background: var(--color-kumo-elevated);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.vanilla-loop-step span {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--text-color-kumo-brand);
+  background: color-mix(in oklch, var(--color-kumo-brand), transparent 90%);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.vanilla-explanation,
+.vanilla-history {
+  border-top: 1px solid var(--color-kumo-line);
+  padding-top: 16px;
+}
+
+.vanilla-history ol {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.vanilla-history li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-color-kumo-subtle);
+  font-size: 0.9rem;
+}
+
+.vanilla-history code {
+  justify-self: start;
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: var(--color-kumo-control);
+  color: var(--text-color-kumo-default);
+  font-family: inherit;
+}
+
 @media (max-width: 1080px) {
   .app-shell {
     height: auto;

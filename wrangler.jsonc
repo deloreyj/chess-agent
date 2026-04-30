@@ -11,6 +11,10 @@
   "durable_objects": {
     "bindings": [
       {
+        "name": "VanillaChessAgent",
+        "class_name": "VanillaChessAgent"
+      },
+      {
         "name": "ThinkChessAgent",
         "class_name": "ThinkChessAgent"
       }
@@ -29,6 +33,10 @@
           "to": "ThinkChessAgent"
         }
       ]
+    },
+    {
+      "tag": "v3",
+      "new_sqlite_classes": ["VanillaChessAgent"]
     }
   ],
   "ai": {

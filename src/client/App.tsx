@@ -1,6 +1,7 @@
 import { LandingRoute } from "./routes/LandingRoute";
 import { PlaceholderRoute } from "./routes/PlaceholderRoute";
 import { ThinkRoute } from "./routes/ThinkRoute";
+import { VanillaRoute } from "./routes/VanillaRoute";
 
 export function App() {
   const route = getRoute(window.location.pathname);
@@ -10,20 +11,7 @@ export function App() {
   }
 
   if (route === "vanilla") {
-    return (
-      <PlaceholderRoute
-        active="vanilla"
-        eyebrow="Stage 1 · /vanilla"
-        title="Vanilla LLM Chess"
-        description="The baseline demo will show the app owning the model call, prompt assembly, tool loop, retries, and state updates."
-        bullets={[
-          "Durable Object Agent owns one chess game.",
-          "@callable() exposes gameplay RPC over WebSocket.",
-          "chess.js validates every move before state changes.",
-          "The app owns the LLM orchestration glue.",
-        ]}
-      />
-    );
+    return <VanillaRoute />;
   }
 
   if (route === "lab") {

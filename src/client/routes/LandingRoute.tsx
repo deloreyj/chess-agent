@@ -9,7 +9,7 @@ const stages = [
     eyebrow: "Stage 1",
     title: "Vanilla LLM Chess",
     summary: "The app owns the model call, loop, retries, and state updates.",
-    status: "Planned",
+    status: "Available now",
   },
   {
     href: "/think",
