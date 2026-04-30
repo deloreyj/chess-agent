@@ -31,6 +31,7 @@ export function createInitialGameState(gameId: string): GameState {
     playerColor: DEFAULT_PLAYER_COLOR,
     agentColor: DEFAULT_AGENT_COLOR,
     agentThinking: false,
+    runtimeEvents: [],
   };
 }
 
@@ -50,7 +51,6 @@ export function createGameView(state: GameState): GameView {
 export function tryApplyMove(
   state: GameState,
   input: PlayMoveInput,
-  explanation?: string,
 ): MoveResult {
   const chess = new Chess(state.fen);
   const legalMoves = getLegalMoves(chess);
@@ -62,7 +62,6 @@ export function tryApplyMove(
       ...state,
       fen: chess.fen(),
       moves: [...state.moves, moveView],
-      lastAgentExplanation: explanation ?? state.lastAgentExplanation,
     };
 
     return {

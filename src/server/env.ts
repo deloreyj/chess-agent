@@ -1,6 +1,6 @@
-import type { ChessAgent } from "../agents/ChessAgent";
+import type { ThinkChessAgent } from "../agents/ThinkChessAgent";
 
 export type Env = {
   AI: Ai;
-  ChessAgent: DurableObjectNamespace<ChessAgent>;
+  ThinkChessAgent: DurableObjectNamespace<ThinkChessAgent>;
 };

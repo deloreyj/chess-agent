@@ -1,4 +1,11 @@
-import { Think } from "@cloudflare/think";
+import {
+  Think,
+  type ChatResponseResult,
+  type StepContext,
+  type ToolCallContext,
+  type ToolCallResultContext,
+  type TurnContext,
+} from "@cloudflare/think";
 import { callable } from "agents";
 import { tool, type ToolSet } from "ai";
 import { Chess } from "chess.js";
@@ -14,22 +21,16 @@ import {
   isPlayerTurn,
   tryApplyMove,
 } from "../shared/chess";
+import { INTERNAL_TURN_MESSAGE_ID_PREFIX } from "../shared/messages";
 import { playMoveInputSchema } from "../shared/schemas";
 import type { GameState, GameView, PlayMoveInput } from "../shared/types";
 import type { Env } from "../server/env";
 
 const MAX_AGENT_TURN_STEPS = 4;
-
-const playMoveToolInputSchema = playMoveInputSchema.extend({
-  explanation: z
-    .string()
-    .min(1)
-    .max(280)
-    .describe("Short explanation of why this move was chosen."),
-});
+const MAX_RUNTIME_EVENTS = 30;
 
 /**
- * Cloudflare Agent (Durable Object) that owns the chess game.
+ * Think-powered chess agent (Durable Object) that owns one chess game.
  *
  * Everything flows through the agent's WebSocket connection:
  *   - GameState is the agent's `state`. setState() broadcasts the new state
@@ -44,7 +45,7 @@ const playMoveToolInputSchema = playMoveInputSchema.extend({
  */
 const MODEL_ID = "@cf/moonshotai/kimi-k2.5";
 
-export class ChessAgent extends Think<Env, GameState> {
+export class ThinkChessAgent extends Think<Env, GameState> {
   initialState = createInitialGameState("default");
   maxSteps = MAX_AGENT_TURN_STEPS;
 
@@ -65,6 +66,8 @@ Rules:
 - You may inspect the current board with inspectGameState.
 - Never claim a move has been played unless playMove returns ok: true.
 - If playMove returns ok: false, use the error and legal moves from the prompt to choose another move.
+- After a successful move, do not print the board, FEN, or legal move list.
+- After a successful move, give only a brief explanation of the move and why you chose it.
 - Prefer legal, sensible chess moves over verbose explanation.`;
   }
 
@@ -82,8 +85,8 @@ Rules:
       playMove: tool({
         description:
           "Play the agent's move. The move must be legal for the current side to move.",
-        inputSchema: playMoveToolInputSchema,
-        execute: async ({ explanation, ...move }) => {
+        inputSchema: playMoveInputSchema,
+        execute: async (move) => {
           const state = this.ensureGameState();
 
           if (!isAgentTurn(state)) {
@@ -94,7 +97,7 @@ Rules:
             };
           }
 
-          const result = tryApplyMove(state, move, explanation);
+          const result = tryApplyMove(state, move);
 
           if (!result.ok) {
             return result;
@@ -111,6 +114,39 @@ Rules:
         },
       }),
     };
+  }
+
+  beforeTurn(ctx: TurnContext) {
+    this.recordRuntimeEvent(
+      "beforeTurn",
+      ctx.continuation ? "continuation" : "new turn",
+    );
+  }
+
+  beforeToolCall(ctx: ToolCallContext) {
+    this.recordRuntimeEvent(`tool: ${ctx.toolName}`, "started");
+  }
+
+  afterToolCall(ctx: ToolCallResultContext) {
+    this.recordRuntimeEvent(
+      `tool result: ${ctx.toolName}`,
+      ctx.success
+        ? `ok in ${Math.round(ctx.durationMs)}ms`
+        : `error in ${Math.round(ctx.durationMs)}ms`,
+    );
+  }
+
+  onStepFinish(ctx: StepContext) {
+    this.recordRuntimeEvent("onStepFinish", `finish: ${ctx.finishReason}`);
+  }
+
+  onChatResponse(_result: ChatResponseResult) {
+    this.recordRuntimeEvent("onChatResponse", "completed");
+  }
+
+  onChatError(error: unknown) {
+    this.recordRuntimeEvent("onChatError", formatUnknownError(error));
+    return super.onChatError(error);
   }
 
   /**
@@ -174,7 +210,13 @@ Rules:
 
   private ensureGameState(): GameState {
     if (this.state.gameId === this.name) {
-      return this.state;
+      if (this.state.runtimeEvents) {
+        return this.state;
+      }
+
+      const state = { ...this.state, runtimeEvents: [] };
+      this.setState(state);
+      return state;
     }
 
     const state = createInitialGameState(this.name);
@@ -194,7 +236,7 @@ Rules:
       // saveMessages streams the server-initiated turn to every connected client.
       await this.saveMessages([
         {
-          id: crypto.randomUUID(),
+          id: `${INTERNAL_TURN_MESSAGE_ID_PREFIX}${crypto.randomUUID()}`,
           role: "user",
           parts: [{ type: "text", text: prompt }],
         },
@@ -210,8 +252,27 @@ Rules:
       this.setState({ ...current, agentThinking: false });
     }
   }
+
+  private recordRuntimeEvent(label: string, detail?: string) {
+    const state = this.ensureGameState();
+    const runtimeEvents = [
+      ...state.runtimeEvents,
+      {
+        id: crypto.randomUUID(),
+        at: Date.now(),
+        label,
+        detail,
+      },
+    ].slice(-MAX_RUNTIME_EVENTS);
+
+    this.setState({ ...state, runtimeEvents });
+  }
 }
 
 function getLegalMovesForState(state: GameState) {
   return getLegalMoves(new Chess(state.fen));
+}
+
+function formatUnknownError(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown error";
 }

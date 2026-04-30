@@ -47,6 +47,11 @@ export function Board({ game, disabled, onMove }: BoardProps) {
       return;
     }
 
+    if (square.color === game.playerColor) {
+      setSelectedSquare(square);
+      return;
+    }
+
     const move: PlayMoveInput = {
       from: selectedSquare.square,
       to: square.square,

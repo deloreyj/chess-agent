@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 
 // `agents/vite` runs the `@callable()` decorators through Babel so the dev
 // runner can parse the Worker entry. Without it, the Cloudflare Vite plugin's
-// runner-worker chokes on TC39 decorator syntax in `ChessAgent.ts`.
+// runner-worker chokes on TC39 decorator syntax in agent classes.
 import agents from "agents/vite";
 
 export default defineConfig({

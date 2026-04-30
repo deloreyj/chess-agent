@@ -44,16 +44,23 @@ export type MoveView = {
   captured?: PieceSymbol;
 };
 
+export type RuntimeEvent = {
+  id: string;
+  at: number;
+  label: string;
+  detail?: string;
+};
+
 export type GameState = {
   gameId: string;
   fen: string;
   moves: MoveView[];
   playerColor: PlayerColor;
   agentColor: PlayerColor;
-  lastAgentExplanation?: string;
   // True while the LLM is taking its turn. Broadcast through agent state
   // so every connected client renders the same "thinking..." indicator.
   agentThinking: boolean;
+  runtimeEvents: RuntimeEvent[];
 };
 
 export type GameView = GameState & {

@@ -13,14 +13,15 @@ import {
   type KeyboardEvent,
 } from "react";
 
-import type { ChessAgent } from "../../agents/ChessAgent";
-import type { GameState } from "../../shared/types";
-import { getTextFromMessage, MessageParts } from "./MessageParts";
+import type { ThinkChessAgent } from "../../agents/ThinkChessAgent";
+import { isInternalTurnMessageId } from "../../shared/messages";
+import type { GameState, RuntimeEvent } from "../../shared/types";
+import { MessageParts } from "./MessageParts";
 
-// Shape returned by useAgent<ChessAgent, GameState>. We only need the props
+// Shape returned by useAgent<ThinkChessAgent, GameState>. We only need the props
 // useAgentChat consumes, so type it loosely to avoid pulling in PartySocket.
-type ChessAgentClient = ReturnType<
-  typeof import("agents/react").useAgent<ChessAgent, GameState>
+type ThinkChessAgentClient = ReturnType<
+  typeof import("agents/react").useAgent<ThinkChessAgent, GameState>
 >;
 
 type AgentPanelProps = {
@@ -29,10 +30,11 @@ type AgentPanelProps = {
    * gameplay state sync and chat ride the same WebSocket instead of opening
    * a second connection to the same Durable Object.
    */
-  agent: ChessAgentClient;
+  agent: ThinkChessAgentClient;
+  runtimeEvents: RuntimeEvent[];
 };
 
-export function AgentPanel({ agent }: AgentPanelProps) {
+export function AgentPanel({ agent, runtimeEvents }: AgentPanelProps) {
   const [message, setMessage] = useState("");
   const feedRef = useRef<HTMLDivElement>(null);
   const { messages, sendMessage, status, stop } = useAgentChat({ agent });
@@ -67,6 +69,26 @@ export function AgentPanel({ agent }: AgentPanelProps) {
           {isStreaming ? "Thinking" : "Ready"}
         </div>
       </header>
+
+      <section className="runtime-timeline" aria-label="Think runtime timeline">
+        <div className="runtime-timeline-header">
+          <Text bold>Think Runtime</Text>
+          <Text variant="secondary">Loop events</Text>
+        </div>
+        {runtimeEvents.length === 0 ? (
+          <Text variant="secondary">Make a move to watch the harness run.</Text>
+        ) : (
+          <ol>
+            {runtimeEvents.map((event) => (
+              <li key={event.id}>
+                <time>{formatRuntimeTime(event.at)}</time>
+                <span>{event.label}</span>
+                {event.detail ? <em>{event.detail}</em> : null}
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
 
       <div ref={feedRef} className="agent-chat-feed" aria-live="polite">
         {visibleMessages.length === 0 ? (
@@ -155,15 +177,13 @@ export function AgentPanel({ agent }: AgentPanelProps) {
 }
 
 function isInternalTurnPrompt(message: UIMessage) {
-  if (message.role !== "user") {
-    return false;
-  }
+  return message.role === "user" && isInternalTurnMessageId(message.id);
+}
 
-  const text = getTextFromMessage(message);
-
-  return (
-    text.includes("You are playing black in a chess game against a human.") &&
-    text.includes("Legal moves:") &&
-    text.includes("You must call playMove")
-  );
+function formatRuntimeTime(timestamp: number) {
+  return new Date(timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 }

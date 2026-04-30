@@ -31,13 +31,6 @@ export function MessageParts({ parts }: { parts: MessagePart[] }) {
   );
 }
 
-export function getTextFromMessage(message: UIMessage) {
-  return message.parts
-    .map((part) => (isTextUIPart(part) ? part.text : undefined))
-    .filter((text) => text !== undefined)
-    .join("\n");
-}
-
 function MessagePartView({ part }: { part: MessagePart }) {
   if (isTextUIPart(part)) {
     return <TextBlock text={part.text} />;

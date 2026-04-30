@@ -1,17 +1,17 @@
 import { useAgent } from "agents/react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { ChessAgent } from "../../agents/ChessAgent";
+import type { ThinkChessAgent } from "../../agents/ThinkChessAgent";
 import { createGameView } from "../../shared/chess";
 import type { GameState, GameView, PlayMoveInput } from "../../shared/types";
 
 /**
- * Connects to a single ChessAgent instance over WebSocket and exposes the
+ * Connects to a single ThinkChessAgent instance over WebSocket and exposes the
  * game view, RPC helpers, and any error from the most recent action.
  *
  * Game state lives on the agent (a Cloudflare Durable Object). When the
  * agent calls setState, every connected client receives the new state via
-   * `onStateUpdate` — no polling and no REST API for gameplay.
+ * `onStateUpdate` — no polling and no REST API for gameplay.
  */
 export function useChessGame(gameId: string) {
   const [state, setLocalState] = useState<GameState | undefined>(undefined);
@@ -19,8 +19,15 @@ export function useChessGame(gameId: string) {
   const [isPlayingMove, setIsPlayingMove] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
-  const agent = useAgent<ChessAgent, GameState>({
-    agent: "ChessAgent",
+  useEffect(() => {
+    setLocalState(undefined);
+    setError(undefined);
+    setIsPlayingMove(false);
+    setIsResetting(false);
+  }, [gameId]);
+
+  const agent = useAgent<ThinkChessAgent, GameState>({
+    agent: "ThinkChessAgent",
     name: gameId,
     onStateUpdate: (next) => {
       setLocalState(next);

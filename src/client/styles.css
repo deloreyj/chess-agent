@@ -82,6 +82,138 @@ input {
   text-transform: uppercase;
 }
 
+.route-nav {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.route-nav a,
+.primary-link {
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 999px;
+  padding: 7px 11px;
+  color: var(--text-color-kumo-default);
+  background: var(--color-kumo-control);
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.route-nav a:hover,
+.primary-link:hover,
+.route-nav a[data-active="true"] {
+  border-color: color-mix(in oklch, var(--color-kumo-brand), transparent 48%);
+  color: var(--text-color-kumo-brand);
+  background: color-mix(in oklch, var(--color-kumo-brand), transparent 92%);
+}
+
+.landing-shell,
+.placeholder-shell {
+  min-height: 100vh;
+  height: auto;
+  overflow: auto;
+}
+
+.landing-header {
+  align-items: flex-start;
+}
+
+.stage-grid,
+.narrative-panel,
+.placeholder-panel {
+  width: min(100%, 1280px);
+  margin: 0 auto;
+}
+
+.stage-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.stage-card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.stage-card {
+  min-height: 220px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition:
+    border-color 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.stage-card-link:hover .stage-card {
+  border-color: color-mix(in oklch, var(--color-kumo-brand), transparent 45%);
+  transform: translateY(-2px);
+  box-shadow: 0 24px 72px var(--color-kumo-shadow-drop);
+}
+
+.stage-card-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-color-kumo-subtle);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.narrative-panel,
+.placeholder-panel {
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+}
+
+.narrative-panel p,
+.placeholder-panel p {
+  max-width: 860px;
+  margin: 0;
+  color: var(--text-color-kumo-subtle);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.refrain-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.refrain-grid > div,
+.placeholder-panel li {
+  border: 1px solid var(--color-kumo-line);
+  border-radius: 16px;
+  padding: 14px;
+  background: var(--color-kumo-elevated);
+}
+
+.placeholder-panel ul {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  list-style: none;
+}
+
+.primary-link {
+  justify-self: start;
+}
+
 .game-layout {
   flex: 1;
   min-height: 0;
@@ -130,10 +262,6 @@ input {
   align-items: center;
   position: relative;
   z-index: 1;
-}
-
-.agent-note {
-  flex-basis: 100%;
 }
 
 .board-wrap {
@@ -277,6 +405,56 @@ input {
   border-color: color-mix(in oklch, var(--color-kumo-brand), transparent 50%);
   color: var(--text-color-kumo-brand);
   background: color-mix(in oklch, var(--color-kumo-brand), transparent 92%);
+}
+
+.runtime-timeline {
+  border-bottom: 1px solid var(--color-kumo-line);
+  padding: 14px 20px;
+  background: var(--color-kumo-base);
+  display: grid;
+  gap: 10px;
+}
+
+.runtime-timeline-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.runtime-timeline ol {
+  max-height: 150px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  list-style: none;
+}
+
+.runtime-timeline li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-color-kumo-default);
+  font-size: 0.78rem;
+}
+
+.runtime-timeline time,
+.runtime-timeline em {
+  color: var(--text-color-kumo-subtle);
+  font-size: 0.72rem;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.runtime-timeline span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .agent-chat-feed {
@@ -475,6 +653,9 @@ input {
 
 @media (max-width: 1080px) {
   .app-shell {
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
     padding: 18px;
   }
 
@@ -489,6 +670,11 @@ input {
   }
 
   .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-grid,
+  .refrain-grid {
     grid-template-columns: 1fr;
   }
 

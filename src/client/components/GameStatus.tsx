@@ -18,11 +18,6 @@ export function GameStatus({ game, isThinking }: GameStatusProps) {
       <Badge variant={statusVariant(game.status)}>{game.status}</Badge>
       <Text>{game.turn === "w" ? "White" : "Black"} to move</Text>
       {isThinking ? <Text variant="secondary">Agent thinking...</Text> : null}
-      {game.lastAgentExplanation ? (
-        <div className="agent-note">
-          <Text variant="secondary">Agent: {game.lastAgentExplanation}</Text>
-        </div>
-      ) : null}
     </div>
   );
 }

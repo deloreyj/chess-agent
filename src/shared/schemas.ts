@@ -10,5 +10,3 @@ export const playMoveInputSchema = z.object({
   to: squareSchema,
   promotion: z.enum(["q", "r", "b", "n"]).optional(),
 });
-
-export type PlayMoveInputFromSchema = z.infer<typeof playMoveInputSchema>;
