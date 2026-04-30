@@ -17,8 +17,7 @@ import type {
   PlayMoveInput,
   PlayerColor,
 } from "./types";
-
-const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
+import { FILES, SQUARES } from "./squares";
 
 export const INITIAL_FEN = DEFAULT_POSITION;
 export const DEFAULT_PLAYER_COLOR: PlayerColor = "w";
@@ -147,7 +146,7 @@ function createBoardSquares(chess: Chess): BoardSquare[] {
     rank.map((piece, fileIndex) => {
       const rankNumber = 8 - rankIndex;
       const file = FILES[fileIndex];
-      const square = `${file}${rankNumber}` as Square;
+      const square = SQUARES[rankIndex * 8 + fileIndex];
 
       return {
         square,

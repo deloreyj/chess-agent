@@ -1,5 +1,5 @@
 import { Text } from "@cloudflare/kumo/components/text";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import type { BoardSquare, GameView, PlayMoveInput } from "../../shared/types";
 
@@ -27,10 +27,6 @@ type BoardProps = {
 export function Board({ game, disabled, onMove }: BoardProps) {
   const [selectedSquare, setSelectedSquare] = useState<BoardSquare | null>(
     null,
-  );
-  const boardBySquare = useMemo(
-    () => new Map(game.board.map((square) => [square.square, square])),
-    [game.board],
   );
 
   function handleSquareClick(square: BoardSquare) {
@@ -94,7 +90,7 @@ export function Board({ game, disabled, onMove }: BoardProps) {
 
       <Text variant="secondary">
         {selectedSquare
-          ? `Selected ${boardBySquare.get(selectedSquare.square)?.square}`
+          ? `Selected ${selectedSquare.square}`
           : "Select one of your pieces, then its target square."}
       </Text>
     </div>

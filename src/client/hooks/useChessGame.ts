@@ -11,7 +11,7 @@ import type { GameState, GameView, PlayMoveInput } from "../../shared/types";
  *
  * Game state lives on the agent (a Cloudflare Durable Object). When the
  * agent calls setState, every connected client receives the new state via
- * `onStateUpdate` — no polling, no React Query, no REST.
+   * `onStateUpdate` — no polling and no REST API for gameplay.
  */
 export function useChessGame(gameId: string) {
   const [state, setLocalState] = useState<GameState | undefined>(undefined);

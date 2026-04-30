@@ -242,21 +242,6 @@ input {
   pointer-events: none;
 }
 
-.move-list {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.move-list li {
-  display: grid;
-  grid-template-columns: 48px 1fr auto;
-  gap: 8px;
-  align-items: center;
-}
-
 .agent-chat-shell {
   min-height: 0;
   display: flex;

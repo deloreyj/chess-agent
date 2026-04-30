@@ -14,7 +14,7 @@ The code should be simple enough to teach from, but structured well enough to sh
 - Cloudflare Vite plugin for local dev/build/deploy parity with Workers
 - Cloudflare Agents SDK with `@cloudflare/think`
 - Workers AI through `workers-ai-provider`
-- React Query for HTTP data fetching and mutations
+- Agent WebSocket RPC for gameplay, chat, and state broadcasts
 - Kumo (`@cloudflare/kumo`) for UI components
 - `chess.js` for legal move validation and game state
 - Zod for request/response validation where helpful
@@ -114,25 +114,14 @@ import { Surface } from "@cloudflare/kumo/components/surface";
 ```txt
 Browser React app
   |
-  | React Query over HTTP
-  v
-Hono API routes on Worker (/api/*)
-  |
-  | getAgentByName(env.ChessAgent, gameId)
+  | useAgent + @callable RPC + useAgentChat over WebSocket
   v
 ChessAgent Durable Object
   |
   | chess.js validates and mutates chess state
   | Workers AI receives board context and legal moves, then acts through tools
   v
-Persisted game state in Durable Object SQLite
-
-Optional side panel:
-Browser React app
-  |
-  | useAgent + useAgentChat over WebSocket
-  v
-ChessAgent Think chat (/agents/chess-agent/:gameId)
+Persisted game and chat state in Durable Object SQLite
 ```
 
 Core invariant:
@@ -195,27 +184,23 @@ wrangler
     │   ├── App.tsx
     │   ├── main.tsx
     │   ├── styles.css
-    │   ├── api
-    │   │   ├── gameApi.ts
-    │   │   └── queryKeys.ts
     │   ├── components
     │   │   ├── AgentPanel.tsx
     │   │   ├── Board.tsx
     │   │   ├── GameControls.tsx
     │   │   ├── GameStatus.tsx
-    │   │   └── MoveHistory.tsx
+    │   │   └── MessageParts.tsx
     │   └── hooks
-    │       └── useGame.ts
+    │       └── useChessGame.ts
     ├── server
     │   ├── index.ts
-    │   ├── env.ts
-    │   └── routes
-    │       └── games.ts
+    │   └── env.ts
     ├── agents
     │   └── ChessAgent.ts
     └── shared
         ├── chess.ts
         ├── schemas.ts
+        ├── squares.ts
         └── types.ts
 ```
 
@@ -227,13 +212,12 @@ wrangler
 import { routeAgentRequest } from "agents";
 import { Hono } from "hono";
 import { ChessAgent } from "../agents/ChessAgent";
-import { gamesRouter } from "./routes/games";
 
 export { ChessAgent };
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.route("/api/games", gamesRouter);
+app.get("/api/health", (c) => c.json({ ok: true }));
 
 export default {
   async fetch(request, env, ctx) {
@@ -248,24 +232,24 @@ export default {
 } satisfies ExportedHandler<Env>;
 ```
 
-## API Plan
+## Agent RPC Plan
 
-Initial HTTP API:
+Gameplay uses callable methods on the Agent WebSocket connection:
 
 ```txt
-GET  /api/games/:gameId
-POST /api/games/:gameId/moves
-POST /api/games/:gameId/reset
+getGame()
+playUserMove({ from, to, promotion })
+resetGame()
 ```
 
-Route responsibilities:
+RPC responsibilities:
 
-- Parse and validate request input.
-- Resolve the game-specific agent with `getAgentByName(env.ChessAgent, gameId)`.
-- Call a callable agent method.
-- Return typed JSON responses consumed by React Query.
+- Validate player moves with `chess.js`.
+- Persist state on the Durable Object.
+- Broadcast state updates to every connected client.
+- Reject invalid moves with clear errors.
 
-The API route should not implement chess logic. It is a thin HTTP boundary over the game agent.
+Hono stays available for simple Worker routes such as `/api/health`; gameplay does not need a REST API.
 
 ## Agent Plan
 
@@ -363,21 +347,19 @@ If playMove returns ok: false, use the error and legal moves to choose another m
 
 ## React Plan
 
-React Query hooks:
+Agent hook:
 
 ```txt
-useGame(gameId)
-usePlayMove(gameId)
-useResetGame(gameId)
+useChessGame(gameId)
 ```
 
 Client components:
 
 - `Board.tsx`: custom chessboard grid; owns only UI selection state.
 - `GameStatus.tsx`: displays side to move, check, checkmate, draw, or errors.
-- `MoveHistory.tsx`: displays SAN move list.
 - `GameControls.tsx`: reset and game id controls.
-- `AgentPanel.tsx`: optional Think chat panel using `useAgent` and `useAgentChat`.
+- `AgentPanel.tsx`: Think chat panel using `useAgentChat`.
+- `MessageParts.tsx`: typed rendering for text, reasoning, and tool-call parts.
 
 The board should not implement chess legality. It can highlight selected squares and submit attempted moves, but the agent/API decides whether the move is valid.
 
@@ -421,8 +403,8 @@ Interaction flow:
 2. Board stores selectedSquare = "e2".
 3. User clicks e4.
 4. Board calls playMove({ from: "e2", to: "e4" }).
-5. React Query invalidates the game query.
-6. Board re-renders from the persisted server/agent state.
+5. The agent broadcasts the updated state.
+6. Board re-renders from the persisted agent state.
 ```
 
 Use Kumo for the shell around the board, not for the square grid itself:
@@ -480,7 +462,7 @@ Expected `wrangler.jsonc` shape:
 - Cloudflare routing model.
 - Chess invariants.
 - LLM boundaries.
-- React Query conventions.
+- Agent WebSocket RPC and state-broadcast conventions.
 - Kumo usage conventions.
 - Commenting style.
 
@@ -490,7 +472,7 @@ Important rules to include:
 - Use `chess.js` as the source of truth for legal moves and status.
 - Do not let the LLM directly mutate persisted game state.
 - Prefer shared schemas/types from `src/shared`.
-- Use React Query for HTTP server state.
+- Use the Agent WebSocket connection for gameplay RPC, chat, and state broadcasts.
 - Use Kumo components via granular imports.
 - Add comments only where they explain Cloudflare Agents, Durable Objects, Workers bindings, or non-obvious chess/LLM boundaries.
 
@@ -511,15 +493,15 @@ Useful tests:
 - Agent move must be in the legal move list.
 - Invalid model output triggers retry and eventually an error if retries fail.
 - Reset returns the starting position.
-- API routes return expected JSON shapes.
+- Callable methods return expected game views and errors.
 
 ## Implementation Phases
 
 1. Create package/config files for React, Vite, Workers, Wrangler, TypeScript, and Vitest.
-2. Add Hono Worker entry and API route skeleton.
+2. Add Hono Worker entry and Agent routing.
 3. Add shared chess types, schemas, and helpers.
 4. Implement `ChessAgent` with `chess.js` state handling and Workers AI move selection.
-5. Add React Query API layer and hooks.
+5. Add the React Agent hook for RPC and state broadcasts.
 6. Build the Kumo-based UI.
 7. Add optional Think chat/analysis panel.
 8. Add `AGENTS.md`.
