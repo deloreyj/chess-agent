@@ -1,28 +1,15 @@
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import { Button } from "@cloudflare/kumo/components/button";
+import { Textarea } from "@cloudflare/kumo/components/input";
 import { LayerCard } from "@cloudflare/kumo/components/layer-card";
 import { Text } from "@cloudflare/kumo/components/text";
 import { ArrowUpIcon, BrainIcon, StopIcon } from "@phosphor-icons/react";
 import type { UIMessage } from "ai";
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type KeyboardEvent,
-} from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import type { ThinkChessAgent } from "../../agents/ThinkChessAgent";
 import { isInternalTurnMessageId } from "../../shared/messages";
-import type { GameState, RuntimeEvent } from "../../shared/types";
+import type { RuntimeEvent } from "../../shared/types";
 import { MessageParts } from "./MessageParts";
-
-// Shape returned by useAgent<ThinkChessAgent, GameState>. We only need the props
-// useAgentChat consumes, so type it loosely to avoid pulling in PartySocket.
-type ThinkChessAgentClient = ReturnType<
-  typeof import("agents/react").useAgent<ThinkChessAgent, GameState>
->;
 
 type AgentPanelProps = {
   /**
@@ -30,13 +17,36 @@ type AgentPanelProps = {
    * gameplay state sync and chat ride the same WebSocket instead of opening
    * a second connection to the same Durable Object.
    */
-  agent: ThinkChessAgentClient;
-  runtimeEvents: RuntimeEvent[];
+  agent: Parameters<typeof useAgentChat>[0]["agent"];
+  runtimeEvents?: RuntimeEvent[];
+  title?: string;
+  description?: string;
+  headerAccessory?: ReactNode;
+  placeholder?: string;
+  showRuntimeTimeline?: boolean;
+  runtimeEmptyDescription?: string;
+  onResponseComplete?: () => void;
+  emptyTitle?: string;
+  emptyDescription?: string;
 };
 
-export function AgentPanel({ agent, runtimeEvents }: AgentPanelProps) {
+export function AgentPanel({
+  agent,
+  runtimeEvents = [],
+  title = "Agent Chat",
+  description = "Watch the model reason, call tools, and explain its moves.",
+  headerAccessory,
+  placeholder = "Ask why it chose a move...",
+  showRuntimeTimeline = true,
+  runtimeEmptyDescription = "Make a move to watch the harness run.",
+  onResponseComplete,
+  emptyTitle = "Ask about the position.",
+  emptyDescription =
+    "The transcript will show text, reasoning parts, and tool calls from the chess agent.",
+}: AgentPanelProps) {
   const [message, setMessage] = useState("");
   const feedRef = useRef<HTMLDivElement>(null);
+  const wasStreamingRef = useRef(false);
   const { messages, sendMessage, status, stop } = useAgentChat({ agent });
   const isStreaming = status === "streaming" || status === "submitted";
   const visibleMessages = useMemo(
@@ -53,52 +63,60 @@ export function AgentPanel({ agent, runtimeEvents }: AgentPanelProps) {
     feed.scrollTo({ top: feed.scrollHeight, behavior: "smooth" });
   }, [visibleMessages, status]);
 
+  useEffect(() => {
+    if (wasStreamingRef.current && !isStreaming) {
+      onResponseComplete?.();
+    }
+
+    wasStreamingRef.current = isStreaming;
+  }, [isStreaming, onResponseComplete]);
+
   return (
     <LayerCard className="panel side-panel agent-chat-shell">
       <header className="agent-chat-header">
         <div>
-          <Text variant="heading2">Agent Chat</Text>
-          <Text variant="secondary">
-            Watch the model reason, call tools, and explain its moves.
-          </Text>
+          <Text variant="heading2">{title}</Text>
+          <Text variant="secondary">{description}</Text>
         </div>
-        <div
-          className="agent-chat-status"
-          data-active={isStreaming ? "true" : "false"}
-        >
-          {isStreaming ? "Thinking" : "Ready"}
+        <div className="agent-chat-header-actions">
+          {headerAccessory}
+          <div
+            className="agent-chat-status"
+            data-active={isStreaming ? "true" : "false"}
+          >
+            {isStreaming ? "Thinking" : "Ready"}
+          </div>
         </div>
       </header>
 
-      <section className="runtime-timeline" aria-label="Think runtime timeline">
-        <div className="runtime-timeline-header">
-          <Text bold>Think Runtime</Text>
-          <Text variant="secondary">Loop events</Text>
-        </div>
-        {runtimeEvents.length === 0 ? (
-          <Text variant="secondary">Make a move to watch the harness run.</Text>
-        ) : (
-          <ol>
-            {runtimeEvents.map((event) => (
-              <li key={event.id}>
-                <time>{formatRuntimeTime(event.at)}</time>
-                <span>{event.label}</span>
-                {event.detail ? <em>{event.detail}</em> : null}
-              </li>
-            ))}
-          </ol>
-        )}
-      </section>
+      {showRuntimeTimeline ? (
+        <section className="runtime-timeline" aria-label="Think runtime timeline">
+          <div className="runtime-timeline-header">
+            <Text bold>Think Runtime</Text>
+            <Text variant="secondary">Loop events</Text>
+          </div>
+          {runtimeEvents.length === 0 ? (
+            <Text variant="secondary">{runtimeEmptyDescription}</Text>
+          ) : (
+            <ol>
+              {runtimeEvents.map((event) => (
+                <li key={event.id}>
+                  <time>{formatRuntimeTime(event.at)}</time>
+                  <span>{event.label}</span>
+                  {event.detail ? <em>{event.detail}</em> : null}
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      ) : null}
 
       <div ref={feedRef} className="agent-chat-feed" aria-live="polite">
         {visibleMessages.length === 0 ? (
           <div className="agent-chat-empty">
             <BrainIcon size={28} />
-            <Text bold>Ask about the position.</Text>
-            <Text variant="secondary">
-              The transcript will show text, reasoning parts, and tool calls
-              from the chess agent.
-            </Text>
+            <Text bold>{emptyTitle}</Text>
+            <Text variant="secondary">{emptyDescription}</Text>
           </div>
         ) : null}
 
@@ -140,15 +158,13 @@ export function AgentPanel({ agent, runtimeEvents }: AgentPanelProps) {
           setMessage("");
         }}
       >
-        <textarea
+        <Textarea
           aria-label="Message the agent"
-          placeholder="Ask why it chose a move..."
+          placeholder={placeholder}
           rows={3}
           value={message}
-          onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-            setMessage(event.currentTarget.value)
-          }
-          onKeyDown={(event: KeyboardEvent<HTMLTextAreaElement>) => {
+          onChange={(event) => setMessage(event.currentTarget.value)}
+          onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();
               event.currentTarget.form?.requestSubmit();
@@ -159,7 +175,6 @@ export function AgentPanel({ agent, runtimeEvents }: AgentPanelProps) {
           <Text variant="secondary">Enter sends. Shift+Enter adds a line.</Text>
           <Button
             type="submit"
-            variant="primary"
             shape="circle"
             disabled={isStreaming ? false : !message.trim()}
             aria-label={isStreaming ? "Stop response" : "Send message"}

@@ -18,22 +18,24 @@ export function GameControls({
   const [draftGameId, setDraftGameId] = useState(gameId);
 
   return (
-    <div className="game-controls">
-      <Input
-        label="Game ID"
-        value={draftGameId}
-        onChange={(event) => setDraftGameId(event.currentTarget.value)}
-      />
-      <Button
-        type="button"
-        variant="primary"
-        onClick={() => onChangeGameId(draftGameId.trim() || gameId)}
-      >
-        Load
-      </Button>
-      <Button type="button" loading={isResetting} onClick={onReset}>
-        Reset
-      </Button>
-    </div>
+    <details className="game-controls-disclosure">
+      <summary>Game</summary>
+      <div className="game-controls">
+        <Input
+          label="Game ID"
+          value={draftGameId}
+          onChange={(event) => setDraftGameId(event.currentTarget.value)}
+        />
+        <Button
+          type="button"
+          onClick={() => onChangeGameId(draftGameId.trim() || gameId)}
+        >
+          Load
+        </Button>
+        <Button type="button" loading={isResetting} onClick={onReset}>
+          Reset
+        </Button>
+      </div>
+    </details>
   );
 }

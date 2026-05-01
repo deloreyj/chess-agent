@@ -1,19 +1,16 @@
 import { useAgent } from "agents/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { ThinkChessAgent } from "../../agents/ThinkChessAgent";
+import type { AgentChessAgent } from "../../agents/AgentChessAgent";
 import { createGameView } from "../../shared/chess";
 import type { GameState, GameView, PlayMoveInput } from "../../shared/types";
 
 /**
- * Connects to a single ThinkChessAgent instance over WebSocket and exposes the
- * game view, RPC helpers, and any error from the most recent action.
- *
- * Game state lives on the agent (a Cloudflare Durable Object). When the
- * agent calls setState, every connected client receives the new state via
- * `onStateUpdate` — no polling and no REST API for gameplay.
+ * Connects to the baseline Agent implementation. Unlike the Harness route, this
+ * only exposes gameplay RPC and state sync; the server owns the model call and
+ * retry loop manually.
  */
-export function useChessGame(gameId: string) {
+export function useAgentChessGame(gameId: string) {
   const [state, setLocalState] = useState<GameState | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
   const [isPlayingMove, setIsPlayingMove] = useState(false);
@@ -26,17 +23,14 @@ export function useChessGame(gameId: string) {
     setIsResetting(false);
   }, [gameId]);
 
-  const agent = useAgent<ThinkChessAgent, GameState>({
-    agent: "ThinkChessAgent",
+  const agent = useAgent<AgentChessAgent, GameState>({
+    agent: "AgentChessAgent",
     name: gameId,
     onStateUpdate: (next) => {
       setLocalState(next);
     },
   });
 
-  // Derive GameView (board, legalMoves, ascii, status, turn) from the raw
-  // GameState we just received. createGameView is shared with the server,
-  // so the source-of-truth rules in chess.js stay consistent.
   const game: GameView | undefined = useMemo(
     () => (state ? createGameView(state) : undefined),
     [state],
@@ -47,8 +41,6 @@ export function useChessGame(gameId: string) {
       setError(undefined);
       setIsPlayingMove(true);
       try {
-        // RPC over the same WebSocket. The agent broadcasts state updates
-        // during this call; we await it just to surface errors via reject.
         await agent.stub.playUserMove(move);
       } catch (caught) {
         setError(caught instanceof Error ? caught.message : "Move failed");
@@ -72,7 +64,6 @@ export function useChessGame(gameId: string) {
   }, [agent]);
 
   return {
-    agent,
     game,
     error,
     isPlayingMove,

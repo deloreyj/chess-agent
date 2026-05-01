@@ -1,11 +1,18 @@
 import { routeAgentRequest } from "agents";
 import { Hono } from "hono";
 
-import { ThinkChessAgent } from "../agents/ThinkChessAgent";
-import { VanillaChessAgent } from "../agents/VanillaChessAgent";
+import { AgentChessAgent } from "../agents/AgentChessAgent";
+import { HarnessChessAgent } from "../agents/HarnessChessAgent";
+import { SystemDirectorAgent } from "../agents/SystemDirectorAgent";
+import { SystemPlayerAgent } from "../agents/SystemPlayerAgent";
 
 // Re-export the Durable Object class so wrangler can find it.
-export { ThinkChessAgent, VanillaChessAgent };
+export {
+  AgentChessAgent,
+  HarnessChessAgent,
+  SystemDirectorAgent,
+  SystemPlayerAgent,
+};
 
 const app = new Hono<{ Bindings: Env }>();
 

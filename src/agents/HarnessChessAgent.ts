@@ -30,7 +30,7 @@ import {
 
 /******** WHAT THINK ADDS ********/
 
-// Think includes the same stateful Agent foundation as the vanilla version:
+// Think includes the same stateful Agent foundation as the manual agent stage:
 // Durable Object state, WebSocket connections, @callable() RPC, and setState()
 // broadcasts. It also adds the agent harness: chat protocol, message
 // persistence, streaming, tool execution, auto-continuation, stream recovery,
@@ -54,7 +54,7 @@ const MAX_RUNTIME_EVENTS = 30;
  * Workshop-relevant safety boundary: the LLM proposes moves through the
  * playMove tool, but chess.js validates them before any state is persisted.
  */
-export class ThinkChessAgent extends Think<Env, GameState> {
+export class HarnessChessAgent extends Think<Env, GameState> {
   initialState = createInitialGameState("default");
   maxSteps = MAX_AGENT_TURN_STEPS;
 

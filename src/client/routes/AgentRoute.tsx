@@ -6,16 +6,16 @@ import { useState } from "react";
 import { Board } from "../components/Board";
 import { GameControls } from "../components/GameControls";
 import { GameStatus } from "../components/GameStatus";
-import { useVanillaChessGame } from "../hooks/useVanillaChessGame";
+import { useAgentChessGame } from "../hooks/useAgentChessGame";
 import { RouteNav } from "./RouteNav";
 
-const DEFAULT_GAME_ID = "vanilla-workshop-game";
-type VanillaGame = ReturnType<typeof useVanillaChessGame>["game"];
+const DEFAULT_GAME_ID = "agent-workshop-game";
+type AgentGame = ReturnType<typeof useAgentChessGame>["game"];
 
-export function VanillaRoute() {
+export function AgentRoute() {
   const [gameId, setGameId] = useState(DEFAULT_GAME_ID);
   const { game, error, isPlayingMove, isResetting, playMove, resetGame } =
-    useVanillaChessGame(gameId);
+    useAgentChessGame(gameId);
   const isThinking = game?.agentThinking ?? false;
   const disableBoard = isPlayingMove || isThinking;
 
@@ -23,26 +23,27 @@ export function VanillaRoute() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">Stage 1 · /vanilla</p>
-          <h1>Vanilla LLM Chess</h1>
+          <h1>Stage 1 - Tool-Using Agent</h1>
           <p>
             Play white against a black Agent that owns its model call, prompt
             assembly, structured response, retries, and state updates directly.
           </p>
-          <RouteNav active="vanilla" />
         </div>
-        <GameControls
-          gameId={gameId}
-          isResetting={isResetting}
-          onChangeGameId={setGameId}
-          onReset={() => resetGame()}
-        />
+        <div className="app-header-actions">
+          <RouteNav active="agent" />
+          <GameControls
+            gameId={gameId}
+            isResetting={isResetting}
+            onChangeGameId={setGameId}
+            onReset={() => resetGame()}
+          />
+        </div>
       </header>
 
       <div className="game-layout">
         <LayerCard className="panel board-panel">
           {game ? null : (
-            <Text variant="secondary">Connecting to vanilla agent...</Text>
+            <Text variant="secondary">Connecting to agent...</Text>
           )}
           {error ? <Banner variant="error" description={error} /> : null}
 
@@ -58,16 +59,16 @@ export function VanillaRoute() {
           ) : null}
         </LayerCard>
 
-        <VanillaSidePanel game={game} />
+        <AgentSidePanel game={game} />
       </div>
     </main>
   );
 }
 
-function VanillaSidePanel({ game }: { game: VanillaGame }) {
+function AgentSidePanel({ game }: { game: AgentGame }) {
   return (
-    <LayerCard className="panel side-panel vanilla-panel">
-      <header className="vanilla-panel-header">
+    <LayerCard className="panel side-panel agent-stage-panel">
+      <header className="agent-stage-panel-header">
         <Text variant="heading2">Manual Agent Loop</Text>
         <Text variant="secondary">
           This route keeps the moving parts visible: prompt, model response,
@@ -75,7 +76,7 @@ function VanillaSidePanel({ game }: { game: VanillaGame }) {
         </Text>
       </header>
 
-      <section className="vanilla-loop-list" aria-label="Vanilla loop steps">
+      <section className="agent-loop-list" aria-label="Agent loop steps">
         {[
           "Build a prompt from FEN, board, history, and legal moves.",
           "Ask Workers AI for one structured move.",
@@ -83,21 +84,21 @@ function VanillaSidePanel({ game }: { game: VanillaGame }) {
           "Retry invalid model output up to three times.",
           "Persist only the validated move with setState().",
         ].map((step, index) => (
-          <div key={step} className="vanilla-loop-step">
+          <div key={step} className="agent-loop-step">
             <span>{index + 1}</span>
             <Text>{step}</Text>
           </div>
         ))}
       </section>
 
-      <section className="vanilla-explanation">
+      <section className="agent-explanation">
         <Text bold>Last agent explanation</Text>
         <Text variant="secondary">
           {game?.lastAgentExplanation ?? "Make a move to see why black replied."}
         </Text>
       </section>
 
-      <section className="vanilla-history" aria-label="Move history">
+      <section className="agent-history" aria-label="Move history">
         <Text bold>Move history</Text>
         {game && game.moves.length > 0 ? (
           <ol>

@@ -51,6 +51,60 @@ export type RuntimeEvent = {
   detail?: string;
 };
 
+export type ChessPersonaStyle =
+  | "balanced"
+  | "aggressive"
+  | "defensive"
+  | "educational";
+
+export type ChessPersona = {
+  name: string;
+  style: ChessPersonaStyle;
+  instructions: string;
+};
+
+export type StrategyProfile = {
+  currentPlan?: string;
+  playerTrends: string[];
+  notes: string[];
+  updatedAt?: number;
+};
+
+export type BoardTheme = {
+  name: string;
+  light: string;
+  dark: string;
+  whitePiece: string;
+  blackPiece: string;
+  accent: string;
+};
+
+export type ChessPlayerState = GameState & {
+  persona: ChessPersona;
+  strategyProfile: StrategyProfile;
+};
+
+export type DirectorAction = {
+  id: string;
+  at: number;
+  label: string;
+  detail?: string;
+};
+
+export type SystemState = {
+  systemId: string;
+  playerAgentName: string;
+  boardTheme: BoardTheme;
+  directorThinking: boolean;
+  // Mirrored from the player sub-agent for director prompts and the control room.
+  // SystemPlayerAgent remains the source of truth for chess state and strategy.
+  strategyNotes: string[];
+  playerTrends: string[];
+  recentDirectorActions: DirectorAction[];
+  persona: ChessPersona;
+  playerGame?: ChessPlayerState;
+};
+
 export type GameState = {
   gameId: string;
   fen: string;

@@ -24,7 +24,7 @@ import {
 // WebSocket connections, @callable() RPC, and setState() broadcasts to connected
 // clients. It does not include the AI chat protocol, message persistence,
 // streaming, tool continuation, or lifecycle hooks. This file owns that
-// orchestration manually so the demo can show what Think removes.
+// orchestration manually so the demo can show why a harness matters.
 
 const MAX_AGENT_MOVE_ATTEMPTS = 3;
 
@@ -53,7 +53,7 @@ const agentMoveSchema = z.object({
  * prompt, calls the model, retries invalid responses, and persists only moves
  * accepted by chess.js.
  */
-export class VanillaChessAgent extends Agent<Env, GameState> {
+export class AgentChessAgent extends Agent<Env, GameState> {
   initialState = createInitialGameState("default");
 
   /******** GAMEPLAY RPC ********/
@@ -140,7 +140,7 @@ export class VanillaChessAgent extends Agent<Env, GameState> {
         console.log(`attempt: ${attempt}`, failures);
         const current = this.ensureGameState();
         const game = createGameView(current);
-        const prompt = createVanillaPrompt(game, failures);
+        const prompt = createManualAgentPrompt(game, failures);
         const { output } = await generateText({
           model,
           output: Output.object({
@@ -182,7 +182,7 @@ Rules:
       }
 
       throw new Error(
-        `The vanilla agent did not produce a legal move after ${MAX_AGENT_MOVE_ATTEMPTS} attempts.`,
+        `The agent stage did not produce a legal move after ${MAX_AGENT_MOVE_ATTEMPTS} attempts.`,
       );
     } finally {
       const current = this.ensureGameState();
@@ -193,7 +193,7 @@ Rules:
 
 /******** PROMPT HELPERS ********/
 
-function createVanillaPrompt(game: GameView, failures: string[]) {
+function createManualAgentPrompt(game: GameView, failures: string[]) {
   const retryContext =
     failures.length === 0
       ? ""

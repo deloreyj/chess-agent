@@ -4,7 +4,7 @@ import { Text } from "@cloudflare/kumo/components/text";
 import { RouteNav } from "./RouteNav";
 
 type PlaceholderRouteProps = {
-  active: "vanilla" | "lab";
+  active: "agent" | "system";
   eyebrow: string;
   title: string;
   description: string;
@@ -40,8 +40,8 @@ export function PlaceholderRoute({
             <li key={bullet}>{bullet}</li>
           ))}
         </ul>
-        <a className="primary-link" href="/think">
-          Open the Think implementation
+        <a className="primary-link" href="/harness">
+          Open the Harness implementation
         </a>
       </LayerCard>
     </main>

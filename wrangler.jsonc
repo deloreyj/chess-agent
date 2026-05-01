@@ -11,32 +11,32 @@
   "durable_objects": {
     "bindings": [
       {
-        "name": "VanillaChessAgent",
-        "class_name": "VanillaChessAgent"
+        "name": "AgentChessAgent",
+        "class_name": "AgentChessAgent"
       },
       {
-        "name": "ThinkChessAgent",
-        "class_name": "ThinkChessAgent"
+        "name": "HarnessChessAgent",
+        "class_name": "HarnessChessAgent"
+      },
+      {
+        "name": "SystemDirectorAgent",
+        "class_name": "SystemDirectorAgent"
+      },
+      {
+        "name": "SystemPlayerAgent",
+        "class_name": "SystemPlayerAgent"
       }
     ]
   },
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["ChessAgent"]
-    },
-    {
-      "tag": "v2",
-      "renamed_classes": [
-        {
-          "from": "ChessAgent",
-          "to": "ThinkChessAgent"
-        }
+      "new_sqlite_classes": [
+        "AgentChessAgent",
+        "HarnessChessAgent",
+        "SystemDirectorAgent",
+        "SystemPlayerAgent"
       ]
-    },
-    {
-      "tag": "v3",
-      "new_sqlite_classes": ["VanillaChessAgent"]
     }
   ],
   "ai": {

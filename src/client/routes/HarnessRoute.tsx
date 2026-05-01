@@ -7,12 +7,12 @@ import { AgentPanel } from "../components/AgentPanel";
 import { Board } from "../components/Board";
 import { GameControls } from "../components/GameControls";
 import { GameStatus } from "../components/GameStatus";
-import { useChessGame } from "../hooks/useChessGame";
+import { useHarnessChessGame } from "../hooks/useHarnessChessGame";
 import { RouteNav } from "./RouteNav";
 
-const DEFAULT_GAME_ID = "think-workshop-game";
+const DEFAULT_GAME_ID = "harness-workshop-game";
 
-export function ThinkRoute() {
+export function HarnessRoute() {
   const [gameId, setGameId] = useState(DEFAULT_GAME_ID);
   const {
     agent,
@@ -22,7 +22,7 @@ export function ThinkRoute() {
     isResetting,
     playMove,
     resetGame,
-  } = useChessGame(gameId);
+  } = useHarnessChessGame(gameId);
   const isThinking = game?.agentThinking ?? false;
   // Disable input while we're awaiting the player-move RPC OR the agent is
   // running its turn server-side (broadcast via state).
@@ -32,27 +32,28 @@ export function ThinkRoute() {
     <main className="app-shell">
       <header className="app-header">
         <div>
-          <p className="eyebrow">Stage 2 · /think</p>
-          <h1>Think Chess Agent</h1>
+          <h1>Stage 2 - Harnessed Agent</h1>
           <p>
-            Play white against a black Think agent. Tool calls are visible in
-            the chat transcript, while chess.js validates every move before
-            state changes.
+            Play white against a black agent running inside the Think harness.
+            Tool calls are visible in the chat transcript, while chess.js
+            validates every move before state changes.
           </p>
-          <RouteNav active="think" />
         </div>
-        <GameControls
-          gameId={gameId}
-          isResetting={isResetting}
-          onChangeGameId={setGameId}
-          onReset={() => resetGame()}
-        />
+        <div className="app-header-actions">
+          <RouteNav active="harness" />
+          <GameControls
+            gameId={gameId}
+            isResetting={isResetting}
+            onChangeGameId={setGameId}
+            onReset={() => resetGame()}
+          />
+        </div>
       </header>
 
       <div className="game-layout">
         <LayerCard className="panel board-panel">
           {game ? null : (
-            <Text variant="secondary">Connecting to Think agent...</Text>
+            <Text variant="secondary">Connecting to harnessed agent...</Text>
           )}
           {error ? <Banner variant="error" description={error} /> : null}
 

@@ -1,7 +1,12 @@
 import { Text } from "@cloudflare/kumo/components/text";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 
-import type { BoardSquare, GameView, PlayMoveInput } from "../../shared/types";
+import type {
+  BoardSquare,
+  BoardTheme,
+  GameView,
+  PlayMoveInput,
+} from "../../shared/types";
 
 const pieceIcons: Record<string, string> = {
   wp: "♙",
@@ -22,12 +27,30 @@ type BoardProps = {
   game: GameView;
   disabled: boolean;
   onMove: (move: PlayMoveInput) => void;
+  theme?: BoardTheme;
 };
 
-export function Board({ game, disabled, onMove }: BoardProps) {
+type BoardStyle = CSSProperties & {
+  "--board-light": string;
+  "--board-dark": string;
+  "--board-white-piece": string;
+  "--board-black-piece": string;
+  "--board-accent": string;
+};
+
+export function Board({ game, disabled, onMove, theme }: BoardProps) {
   const [selectedSquare, setSelectedSquare] = useState<BoardSquare | null>(
     null,
   );
+  const boardStyle: BoardStyle | undefined = theme
+    ? {
+        "--board-light": theme.light,
+        "--board-dark": theme.dark,
+        "--board-white-piece": theme.whitePiece,
+        "--board-black-piece": theme.blackPiece,
+        "--board-accent": theme.accent,
+      }
+    : undefined;
 
   function handleSquareClick(square: BoardSquare) {
     if (disabled || game.turn !== game.playerColor) {
@@ -67,7 +90,12 @@ export function Board({ game, disabled, onMove }: BoardProps) {
 
   return (
     <div className="board-wrap">
-      <div className="board" role="grid" aria-label="Chess board">
+      <div
+        className="board"
+        role="grid"
+        aria-label="Chess board"
+        style={boardStyle}
+      >
         {game.board.map((square) => {
           const icon = square.piece
             ? pieceIcons[`${square.color}${square.piece}`]

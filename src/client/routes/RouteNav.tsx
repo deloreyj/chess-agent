@@ -1,12 +1,12 @@
 type RouteNavProps = {
-  active?: "landing" | "vanilla" | "think" | "lab";
+  active?: "landing" | "agent" | "harness" | "system";
 };
 
 const links = [
   { href: "/", label: "Overview", route: "landing" },
-  { href: "/vanilla", label: "Vanilla", route: "vanilla" },
-  { href: "/think", label: "Think", route: "think" },
-  { href: "/lab", label: "Lab", route: "lab" },
+  { href: "/agent", label: "Agent", route: "agent" },
+  { href: "/harness", label: "Harness", route: "harness" },
+  { href: "/system", label: "System", route: "system" },
 ] as const;
 
 export function RouteNav({ active }: RouteNavProps) {

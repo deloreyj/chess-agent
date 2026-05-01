@@ -1,34 +1,21 @@
+import { AgentRoute } from "./routes/AgentRoute";
+import { HarnessRoute } from "./routes/HarnessRoute";
 import { LandingRoute } from "./routes/LandingRoute";
-import { PlaceholderRoute } from "./routes/PlaceholderRoute";
-import { ThinkRoute } from "./routes/ThinkRoute";
-import { VanillaRoute } from "./routes/VanillaRoute";
+import { SystemRoute } from "./routes/SystemRoute";
 
 export function App() {
   const route = getRoute(window.location.pathname);
 
-  if (route === "think") {
-    return <ThinkRoute />;
+  if (route === "harness") {
+    return <HarnessRoute />;
   }
 
-  if (route === "vanilla") {
-    return <VanillaRoute />;
+  if (route === "agent") {
+    return <AgentRoute />;
   }
 
-  if (route === "lab") {
-    return (
-      <PlaceholderRoute
-        active="lab"
-        eyebrow="Stage 3 · /lab"
-        title="Chess Lab"
-        description="The north-star demo will turn the chess game into an agent system with a director, a player sub-agent, memory, reflection, and safe runtime customization."
-        bullets={[
-          "ChessDirectorAgent coordinates the lab experience.",
-          "ChessPlayerAgent owns authoritative chess state.",
-          "Memory captures player trends and strategy notes.",
-          "Safe tools update persona and board theme.",
-        ]}
-      />
-    );
+  if (route === "system") {
+    return <SystemRoute />;
   }
 
   return <LandingRoute />;
@@ -37,16 +24,16 @@ export function App() {
 function getRoute(pathname: string) {
   const route = pathname.replace(/\/+$/, "") || "/";
 
-  if (route === "/think") {
-    return "think";
+  if (route === "/harness") {
+    return "harness";
   }
 
-  if (route === "/vanilla") {
-    return "vanilla";
+  if (route === "/agent") {
+    return "agent";
   }
 
-  if (route === "/lab") {
-    return "lab";
+  if (route === "/system") {
+    return "system";
   }
 
   return "landing";
